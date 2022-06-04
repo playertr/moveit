@@ -529,16 +529,21 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
   Eigen::MatrixXd matrix_s = svd.singularValues().asDiagonal();
   // Eigen::MatrixXd pseudo_inverse = svd.matrixV() * matrix_s.inverse() * svd.matrixU().transpose();
 
-  double epsilon = 0.02;
-  double sigma_m = svd.singularValues().minCoeff(); // minimum singular value
-  double lambda_squared_max = 0.05; // TODO move all magic numbers to rosparam
+  // **************************** Our code
+  // Based on Handbook of Robotics, Eqs. 10.18 and 10.22
+  // B. Siciliano and O. Khatib. Springer Handbook of Robotics. Berlin: Springer, 2016
+
   double lambda_squared = 0;
+  double epsilon = 0.1;
+  double sigma_m = svd.singularValues().minCoeff(); // minimum singular value
+  double lambda_squared_max = 0.1;
   if (sigma_m < epsilon){
     lambda_squared = (1.0 - pow(sigma_m / epsilon, 2)) * lambda_squared_max;
-    ROS_INFO_STREAM("DLS coeff " << lambda_squared);
   }
   Eigen::MatrixXd pseudo_inverse = jacobian.transpose() * 
     (jacobian * jacobian.transpose() + lambda_squared * Eigen::MatrixXd::Identity(6, 6)).inverse();
+
+  // **************************** End of our code
 
   delta_theta_ = pseudo_inverse * delta_x;
 
