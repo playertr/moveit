@@ -130,6 +130,8 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   // Publish status
   status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, ROS_QUEUE_SIZE);
 
+  condition_pub_ = nh_.advertise<std_msgs::Float64>("/condition_number", ROS_QUEUE_SIZE); // debug -- publish condition number
+
   internal_joint_state_.name = joint_model_group_->getActiveJointModelNames();
   num_joints_ = internal_joint_state_.name.size();
   internal_joint_state_.position.resize(num_joints_);
@@ -543,6 +545,12 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
   Eigen::MatrixXd pseudo_inverse = jacobian.transpose() * 
     (jacobian * jacobian.transpose() + lambda_squared * Eigen::MatrixXd::Identity(6, 6)).inverse();
 
+  // debug -- publish condition number
+  // violates hard real-time
+  double condition = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+  std_msgs::Float64 condition_msg;
+  condition_msg.data = condition;
+  condition_pub_.publish(condition_msg);
   // **************************** End of our code
 
   delta_theta_ = pseudo_inverse * delta_x;

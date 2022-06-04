@@ -273,6 +273,7 @@ private:
   ros::Publisher status_pub_;
   ros::Publisher worst_case_stop_time_pub_;
   ros::Publisher outgoing_cmd_pub_;
+  ros::Publisher condition_pub_; // experiment code : publish the condition number
   ros::ServiceServer drift_dimensions_server_;
   ros::ServiceServer control_dimensions_server_;
   ros::ServiceServer reset_servo_status_;
